@@ -19,7 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Again, global vars, try to avoid them and use dependency injection instead.
 var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
 var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
 var Validate = validator.New()
@@ -43,21 +42,6 @@ func VerifyPassword(userpassword string, givenpassword string) (bool, string) {
 	return valid, msg
 }
 
-// This actually indicates that you may need to seperate your controller.go into seperate files in your controllers package.
-/**********************************************************************************************/
-
-//function to signup
-//accept a post request
-//POST Request
-//http://localhost:8000/users/signnup
-/*
-   "fisrt_name":"joseph",
-   "last_name":"hermis",
-   "email":"something@gmail.com",
-   "phone":"1156422222",
-   "password":"hashed:)"
-
-*/
 func SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -93,8 +77,6 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Phone is already in use"})
 			return
 		}
-		// It doesn't make sense to hash the password while still checking if
-		// the phone number exists or not. So I moved it down a bit.
 		password := HashPassword(*user.Password)
 		user.Password = &password
 
@@ -118,13 +100,6 @@ func SignUp() gin.HandlerFunc {
 	}
 }
 
-//function to generate login and check the user to create necessary fields in the db mostly as empty array
-// Accepts a POST
-/*
-"email":"lololol@sss.com"
-"password":"coollcollcoll"
-
-*/
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -151,32 +126,11 @@ func Login() gin.HandlerFunc {
 		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID)
 		defer cancel()
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
-
-		// Never ever ever ever send has password or hashed password to another application!
-
-		// In your reddit post you say you want to make sure this github repo
-		// is usefull to other beginners, but these kind of mistakes only
-		// makes it for other beginners more difficult to handle passwords in
-		// the correct way.
 		c.JSON(http.StatusFound, founduser)
 
 	}
 }
 
-//This is function to add products
-//this is an admin part
-//json should look like this
-// post request : http://localhost:8080/admin/addproduct
-/*
-json
-
-{
-"product_name" : "pencil"
-"price"        : 98
-"rating"       : 10
-"image"        : "image-url"
-}
-*/
 func ProductViewerAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -197,8 +151,6 @@ func ProductViewerAdmin() gin.HandlerFunc {
 	}
 }
 
-// SearchProduct lists all the products in the database
-// paging will be added and fixed soon
 func SearchProduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var productlist []models.Product
@@ -229,7 +181,6 @@ func SearchProduct() gin.HandlerFunc {
 	}
 }
 
-// This is the function to search products based on alphabet name
 func SearchProductByQuery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var searchproducts []models.Product
@@ -264,30 +215,3 @@ func SearchProductByQuery() gin.HandlerFunc {
 		c.IndentedJSON(200, searchproducts)
 	}
 }
-
-/*****BLACKLIST************
-func Logout() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		user_id := c.Query("id")
-		if user_id == "" {
-			c.Header("Content-Type", "application-json")
-			c.JSON(http.StatusNoContent, gin.H{"Error": "Invalid"})
-			c.Abort()
-			return
-		}
-		usert_id, err := primitive.ObjectIDFromHex(user_id)
-		if err != nil {
-			c.IndentedJSON(500, "Something Went Wrong")
-		}
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		defer cancel()
-		filter := bson.D{{"_id", usert_id}}
-		update := bson.D{{"$unset", bson.D{{"token", ""}, {"refresh_token", ""}}}}
-		_, err = UserCollection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			c.IndentedJSON(500, err)
-		}
-
-	}
-}
-//***************/

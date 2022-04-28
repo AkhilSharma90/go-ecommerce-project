@@ -22,8 +22,6 @@ func Authentication() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// Why do you add so many claims to your JWT token?
-		// Is just the email or uid (which I assume are both unique) and fetch the user if you need to get more data from the user?
 		c.Set("email", claims.Email)
 		c.Set("uid", claims.Uid)
 		c.Next()

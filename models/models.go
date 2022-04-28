@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// User represents the users collection in MongoDB.
 type User struct {
 	ID              primitive.ObjectID `json:"_id" bson:"_id"`
 	First_Name      *string            `json:"first_name" validate:"required,min=2,max=30"`

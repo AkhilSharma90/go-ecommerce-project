@@ -47,8 +47,6 @@ func TokenGenerator(email string, firstname string, lastname string, uid string)
 	}
 	refreshtoken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		// Try to reduce your panic and return an error to the user instead so your application stays running.
-		// It looks like Gin doesn't recover from panic's automatically so your website will crash if jwt.NewWithClaims returns an error.
 		log.Panicln(err)
 		return
 	}
