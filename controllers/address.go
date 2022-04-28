@@ -14,20 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-//function to add the address and limited to 2
-//home and work address
-/*
-{
-"house_name":"jupyterlab",
-"street_name":"notebook",
-"city_name":"josua",
-"pin_code":"685607"
-}
-The Post Request Url will look like this
-POST
-http://localhost:8000/addadress?id=user_id*************
-
-*/
 func AddAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
@@ -47,9 +33,6 @@ func AddAddress() gin.HandlerFunc {
 			c.IndentedJSON(http.StatusNotAcceptable, err.Error())
 		}
 
-		// What is the point of these massive timeouts? 100 seconds!
-		// I would place the context at the start of the handler and maybe give
-		// it 10 seconds maximum. Most people already stop ordering
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
 		match_filter := bson.D{{Key: "$match", Value: bson.D{primitive.E{Key: "_id", Value: address}}}}
@@ -86,19 +69,6 @@ func AddAddress() gin.HandlerFunc {
 	}
 }
 
-//function to edit the address put request
-/*
-
-{
-"house_name":"jupyterlab",
-"street_name":"notebook",
-"city_name":"mars",
-"pin_code":"12231997"
-}
-PUT
-http://localhost:8000/edithomeaddress?id=xxxxxxxxxxxxxxxxxxxxxxxxx
-
-*/
 func EditHomeAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
@@ -131,20 +101,6 @@ func EditHomeAddress() gin.HandlerFunc {
 	}
 }
 
-//function to edit the work address put request
-/*
-
-{
-"house_name":"jupyterlab",
-"street_name":"notebook",
-"city_name":"mars",
-"pin_code":"12231997"
-}
-PUT
-http://localhost:8000/editworkaddress?id=xxxxxxxxxxxxxxxxxxxxxxxxx
-
-*/
-
 func EditWorkAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
@@ -176,12 +132,6 @@ func EditWorkAddress() gin.HandlerFunc {
 		c.IndentedJSON(200, "Successfully updated the Work Address")
 	}
 }
-
-/********************************************************************************************/
-
-//function to delete the address here both the address will be removed fix soon
-//GET request
-//http://localhost:8000/deleteaddresses?id=xxxxxxxxxxxxxxxxxxxxxxxx
 
 func DeleteAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {

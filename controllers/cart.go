@@ -28,60 +28,37 @@ func NewApplication(prodCollection, userCollection *mongo.Collection) *Applicati
 	}
 }
 
-// AddToCart adds products to the cart of the user.
-// GET request
-// http://localhost:8000/addtocart?id=xxxproduct_id&normal=xxxxxxuser_idxxxxxx
-// I add dependency to this handler to show you how much simpler your handler
-// become. Your handlers should validate input call one or two functions.
-// These business logic functions return an answer and probably an error.
-// Your handler should then handle the error and construct a repsonse that
-// matches the output and error.
 func (app *Application) AddToCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Validate the input of the user
 		productQueryID := c.Query("id")
 		if productQueryID == "" {
 			log.Println("product id is empty")
-			// Gin has this c.Errors that is supposed to be used to catch
-			// all errors that are generated in your handler. I don't understand
-			// why you would use that so I'm ignoring it here.
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
 			return
 		}
-
-		// Why is this called normal and not userID?
 		userQueryID := c.Query("userID")
 		if userQueryID == "" {
 			log.Println("user id is empty")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("user id is empty"))
 			return
 		}
-		// Don't ignore errors!
 		productID, err := primitive.ObjectIDFromHex(productQueryID)
 		if err != nil {
 			log.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-
-		// Do your database queries
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		// You have sometimes multiple defer cancel() in your functions.
 		defer cancel()
 
 		err = database.AddProductToCart(ctx, app.prodCollection, app.userCollection, productID, userQueryID)
 		if err != nil {
-			// This error is actually controlled by us so we don't leak any
-			// sensitive information about our mongodb server or what went wrong.
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
 		c.IndentedJSON(200, "Successfully Added to the cart")
 	}
 }
 
-//function to remove item from cart
-//GET Request
-//http://localhost:8000/addtocart?id=xxxproduct_id&normal=xxxxxxuser_idxxxxxx
 func (app *Application) RemoveItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryID := c.Query("id")
@@ -115,11 +92,6 @@ func (app *Application) RemoveItem() gin.HandlerFunc {
 	}
 }
 
-//function to get all items in the cart and total price
-//GET request
-//http://localhost:8000/listcart?id=xxxxxxuser_idxxxxxxxxxx
-//help to add dependency injection
-//Any nice way to group together this json response?
 func GetItemFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
@@ -200,7 +172,6 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 		}
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		// Always use the defer cancel() as close to the creation point as possible.
 		defer cancel()
 		err = database.InstantBuyer(ctx, app.prodCollection, app.userCollection, productID, UserQueryID)
 		if err != nil {
